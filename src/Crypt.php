@@ -13,19 +13,33 @@ namespace HyperfExt\Encryption;
 use Hyperf\Utils\ApplicationContext;
 use HyperfExt\Encryption\Contract\DriverInterface;
 use HyperfExt\Encryption\Contract\EncryptionInterface;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 abstract class Crypt
 {
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public static function getDriver(?string $name = null): DriverInterface
     {
         return ApplicationContext::getContainer()->get(EncryptionInterface::class)->getDriver($name);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public static function encrypt($value, bool $serialize = true, ?string $driverName = null): string
     {
         return static::getDriver($driverName)->encrypt($value, $serialize);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public static function decrypt(string $payload, bool $unserialize = true, ?string $driverName = null)
     {
         return static::getDriver($driverName)->decrypt($payload, $unserialize);

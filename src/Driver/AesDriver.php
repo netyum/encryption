@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 namespace HyperfExt\Encryption\Driver;
 
+use Exception;
 use HyperfExt\Encryption\Contract\SymmetricDriverInterface;
 use HyperfExt\Encryption\Exception\DecryptException;
 use HyperfExt\Encryption\Exception\EncryptException;
@@ -22,19 +23,19 @@ class AesDriver implements SymmetricDriverInterface
      *
      * @var string
      */
-    protected $key;
+    protected string $key;
 
     /**
      * The algorithm used for encryption.
      *
      * @var string
      */
-    protected $cipher;
+    protected string $cipher;
 
     /**
      * Create a new encrypter instance.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __construct(array $options = [])
     {
@@ -62,6 +63,7 @@ class AesDriver implements SymmetricDriverInterface
 
     /**
      * Create a new encryption key for the given cipher.
+     * @throws Exception
      */
     public static function generateKey(array $options = []): string
     {
@@ -74,7 +76,7 @@ class AesDriver implements SymmetricDriverInterface
      *
      * @param mixed $value
      *
-     * @throws \HyperfExt\Encryption\Exception\EncryptException
+     * @throws EncryptException|Exception
      */
     public function encrypt($value, bool $serialize = true): string
     {
@@ -112,12 +114,13 @@ class AesDriver implements SymmetricDriverInterface
     /**
      * Decrypt the given value.
      *
+     * @param string $payload
      * @param bool $unserialize
      *
-     * @throws \HyperfExt\Encryption\Exception\DecryptException
      * @return mixed
+     * @throws Exception
      */
-    public function decrypt(string $payload, $unserialize = true)
+    public function decrypt(string $payload, bool $unserialize = true): mixed
     {
         $payload = $this->getJsonPayload($payload);
 
@@ -152,9 +155,11 @@ class AesDriver implements SymmetricDriverInterface
     /**
      * Create a MAC for the given value.
      *
+     * @param string $iv
      * @param mixed $value
+     * @return string
      */
-    protected function hash(string $iv, $value): string
+    protected function hash(string $iv, mixed $value): string
     {
         return hash_hmac('sha256', $iv . $value, $this->key);
     }
@@ -162,7 +167,7 @@ class AesDriver implements SymmetricDriverInterface
     /**
      * Get the JSON array from the given payload.
      *
-     * @throws \HyperfExt\Encryption\Exception\DecryptException
+     * @throws DecryptException|Exception
      */
     protected function getJsonPayload(string $payload): array
     {
@@ -186,8 +191,9 @@ class AesDriver implements SymmetricDriverInterface
      * Verify that the encryption payload is valid.
      *
      * @param mixed $payload
+     * @return bool
      */
-    protected function validPayload($payload): bool
+    protected function validPayload(mixed $payload): bool
     {
         try {
             return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac'])
@@ -199,6 +205,7 @@ class AesDriver implements SymmetricDriverInterface
 
     /**
      * Determine if the MAC for the given payload is valid.
+     * @throws Exception
      */
     protected function validMac(array $payload): bool
     {
@@ -213,9 +220,11 @@ class AesDriver implements SymmetricDriverInterface
     /**
      * Calculate the hash of the given payload.
      *
+     * @param array $payload
+     * @param string $bytes
      * @return string
      */
-    protected function calculateMac(array $payload, string $bytes)
+    protected function calculateMac(array $payload, string $bytes): string
     {
         return hash_hmac(
             'sha256',

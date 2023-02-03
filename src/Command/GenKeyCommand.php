@@ -15,16 +15,8 @@ use Hyperf\Contract\ConfigInterface;
 
 class GenKeyCommand extends HyperfCommand
 {
-    /**
-     * The repository instance.
-     *
-     * @var \Hyperf\Contract\ConfigInterface
-     */
-    protected $config;
-
-    public function __construct(ConfigInterface $config)
+    public function __construct(protected ConfigInterface $config)
     {
-        $this->config = $config;
         parent::__construct('gen:key');
     }
 
